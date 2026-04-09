@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-verdana: Verdana, Geneva, sans-serif;
+}
+
+body {
+  font-family: Verdana, Geneva, sans-serif;
+}
