@@ -12,8 +12,11 @@ export default async function Home() {
         <h1 className="text-2xl font-medium text-blue-800">Borbor</h1>
         <div className="flex items-center gap-4">
           <span className="text-sm text-green-700">
-            {user?.user_metadata?.name ?? user?.email}
+            {user?.user_metadata?.full_name ?? user?.user_metadata?.name ?? user?.email}
           </span>
+          <a href="/config" className="text-sm text-blue-600 hover:underline">
+            Settings
+          </a>
           <form action="/auth/signout" method="POST">
             <button
               type="submit"
