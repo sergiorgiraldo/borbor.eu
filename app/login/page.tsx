@@ -37,8 +37,8 @@ export default async function LoginPage({
               Sign in with Google
             </button>
           </form>
-
-          <form
+          
+          {/*<form
             action={async () => {
               "use server";
               await signInWithProvider("github");
@@ -64,7 +64,8 @@ export default async function LoginPage({
             >
               Sign in with Twitter / X
             </button>
-          </form>
+          </form>*/}
+          
         </div>
       </div>
     </main>
