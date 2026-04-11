@@ -40,6 +40,15 @@ export default async function ConfigPage({
       <header className="flex items-center justify-between border-b border-blue-200 pb-4 mb-8">
         <h1 className="text-2xl font-medium text-blue-800">Borbor</h1>
         <div className="flex items-center gap-4">
+          {avatarUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={avatarUrl}
+              alt="Avatar"
+              className="w-8 h-8 rounded-full object-cover border border-blue-200"
+            />
+          )}
+          <span className="text-sm text-green-700">{displayName}</span>
           <a href="/" className="text-sm text-green-700 hover:underline">
             Home
           </a>
