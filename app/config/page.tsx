@@ -19,6 +19,15 @@ export default async function ConfigPage({
   const { error, success } = await searchParams;
   const meta = user.user_metadata ?? {};
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("display_name, avatar_url")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  const displayName = profile?.display_name ?? meta.full_name ?? "";
+  const avatarUrl = profile?.avatar_url ?? meta.avatar_url ?? "";
+
   const { data: apiKeys } = await supabase
     .from("user_api_keys")
     .select("provider")
@@ -64,7 +73,7 @@ export default async function ConfigPage({
               id="display_name"
               name="display_name"
               type="text"
-              defaultValue={meta.full_name ?? ""}
+              defaultValue={displayName}
               className="w-full border border-blue-200 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
               placeholder="Your name"
             />
@@ -81,14 +90,14 @@ export default async function ConfigPage({
               id="avatar_url"
               name="avatar_url"
               type="url"
-              defaultValue={meta.avatar_url ?? ""}
+              defaultValue={avatarUrl}
               className="w-full border border-blue-200 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
               placeholder="https://example.com/photo.jpg"
             />
-            {meta.avatar_url && (
+            {avatarUrl && (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={meta.avatar_url}
+                src={avatarUrl}
                 alt="Profile"
                 className="mt-2 w-12 h-12 rounded-full object-cover border border-blue-200"
               />

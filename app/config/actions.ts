@@ -17,13 +17,16 @@ export async function updateProfile(formData: FormData) {
   const displayName = formData.get("display_name") as string;
   const avatarUrl = formData.get("avatar_url") as string;
 
-  const updates: Record<string, string> = {};
-  if (displayName?.trim()) updates.full_name = displayName.trim();
-  if (avatarUrl?.trim()) updates.avatar_url = avatarUrl.trim();
+  const profileUpdates: Record<string, string | null> = {
+    user_id: user.id,
+    updated_at: new Date().toISOString(),
+  };
+  if (displayName !== null) profileUpdates.display_name = displayName.trim() || null;
+  if (avatarUrl !== null) profileUpdates.avatar_url = avatarUrl.trim() || null;
 
-  const { error } = await supabase.auth.updateUser({
-    data: updates,
-  });
+  const { error } = await supabase
+    .from("profiles")
+    .upsert(profileUpdates, { onConflict: "user_id" });
 
   if (error) {
     redirect("/config?error=update_failed");
