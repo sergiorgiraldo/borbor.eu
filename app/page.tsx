@@ -27,7 +27,15 @@ export default async function Home() {
           </form>
         </div>
       </header>
-      <p className="text-blue-700">Welcome. Plan your trips here.</p>
+      <div className="space-y-4">
+        <p className="text-blue-700">Welcome. Plan your trips here.</p>
+        <a
+          href="/where-to-go"
+          className="inline-block px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
+        >
+          Where to go?
+        </a>
+      </div>
     </main>
   );
 }
