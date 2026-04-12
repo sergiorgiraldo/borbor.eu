@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import type { FlowStep } from "@/app/api/flow/route";
 
 type Message = {
   role: "user" | "assistant";
@@ -9,20 +10,49 @@ type Message = {
 
 export default function ChatShell() {
   const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", text: "Where do you want to go? Tell me about your trip." },
+    { role: "assistant", text: "Do you know where you want to go?" },
   ]);
   const [input, setInput] = useState("");
+  const [flowStep, setFlowStep] = useState<FlowStep>("destination");
+  const [isLoading, setIsLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, isLoading]);
 
-  function handleSend() {
+  async function handleSend() {
     const text = input.trim();
-    if (!text) return;
+    if (!text || isLoading || flowStep === "done") return;
+
     setMessages((prev) => [...prev, { role: "user", text }]);
     setInput("");
+    setIsLoading(true);
+
+    try {
+      const res = await fetch("/api/flow", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ step: flowStep, userMessage: text }),
+      });
+      const data = await res.json();
+
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", text: data.message },
+      ]);
+      setFlowStep((data.nextStep as FlowStep) ?? "done");
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          text: "Something went wrong. Please try again.",
+        },
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -31,6 +61,8 @@ export default function ChatShell() {
       handleSend();
     }
   }
+
+  const isDone = flowStep === "done";
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
@@ -51,6 +83,13 @@ export default function ChatShell() {
             </div>
           </div>
         ))}
+        {isLoading && (
+          <div className="flex justify-start">
+            <div className="max-w-[70%] rounded-lg px-4 py-2 text-sm bg-green-50 border border-green-200 text-blue-900">
+              <span className="animate-pulse">...</span>
+            </div>
+          </div>
+        )}
         <div ref={bottomRef} />
       </div>
 
@@ -60,12 +99,13 @@ export default function ChatShell() {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           rows={1}
-          placeholder="Type your message..."
-          className="flex-1 resize-none border border-blue-200 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
+          placeholder={isDone ? "Planning complete" : "Type your message..."}
+          disabled={isLoading || isDone}
+          className="flex-1 resize-none border border-blue-200 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-400 disabled:opacity-50 disabled:cursor-not-allowed"
         />
         <button
           onClick={handleSend}
-          disabled={!input.trim()}
+          disabled={!input.trim() || isLoading || isDone}
           className="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           Send
