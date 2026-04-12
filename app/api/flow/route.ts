@@ -80,6 +80,7 @@ export async function callOpenAILLM(
     body: JSON.stringify({
       model: "gpt-4o-mini",
       max_tokens: 256,
+      response_format: { type: "json_object" },
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userMessage },
@@ -87,6 +88,7 @@ export async function callOpenAILLM(
     }),
   });
   const data = await res.json();
+  if (data.error) throw new Error(data.error.message ?? "OpenAI API error");
   return (data.choices?.[0]?.message?.content as string) ?? "";
 }
 
@@ -139,7 +141,7 @@ export async function POST(req: NextRequest) {
     }
   } catch {
     return NextResponse.json({
-      message: "Failed to reach AI service. Check your API key in Settings.",
+      message: "Failed to reach AI service. Check your API key in Settings." + keys.openai + ".",
       nextStep: step,
     });
   }

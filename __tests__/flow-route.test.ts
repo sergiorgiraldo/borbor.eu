@@ -87,6 +87,30 @@ describe("callOpenAILLM", () => {
     const result = await callOpenAILLM("system", "hello", "sk-openai-key");
     expect(result).toBe("");
   });
+
+  it("throws when OpenAI returns error object", async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      json: jest.fn().mockResolvedValue({
+        error: { message: "Invalid API key", type: "invalid_request_error" },
+      }),
+    }) as jest.Mock;
+
+    await expect(
+      callOpenAILLM("system", "hello", "bad-key")
+    ).rejects.toThrow("Invalid API key");
+  });
+
+  it("includes response_format json_object in request body", async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      json: jest.fn().mockResolvedValue({
+        choices: [{ message: { content: '{"ok":true}' } }],
+      }),
+    }) as jest.Mock;
+
+    await callOpenAILLM("system", "hello", "sk-openai-key");
+    const body = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body);
+    expect(body.response_format).toEqual({ type: "json_object" });
+  });
 });
 
 // --- POST handler ---

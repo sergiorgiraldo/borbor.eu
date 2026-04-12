@@ -48,6 +48,10 @@ Use Backlog.md for backlog management
 
 Always do the PR'S to DEVELOP branch. PR to main only by me.
 
+## Tools
+
+When testing/compiling, dont use head or tail, always use hson (https://docs.rs/headson/latest/headson/)
+
 <!-- PROJECT WOW END -->
 
 
