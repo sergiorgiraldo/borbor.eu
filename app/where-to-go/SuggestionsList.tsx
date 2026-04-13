@@ -1,14 +1,17 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useState, useEffect, useCallback } from "react";
 
-type Suggestion = { city: string; country: string };
+type Suggestion = { city: string; country: string; lat?: number; lng?: number };
 
 type Props = {
   continent?: string;
   tripType?: string;
   destination?: string;
 };
+
+const SuggestionsMap = dynamic(() => import("./SuggestionsMap"), { ssr: false });
 
 export default function SuggestionsList({ continent, tripType, destination }: Props) {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -108,6 +111,9 @@ export default function SuggestionsList({ continent, tripType, destination }: Pr
       >
         {isLoading ? "Loading..." : "More suggestions"}
       </button>
+      {suggestions.length > 0 && (
+        <SuggestionsMap suggestions={suggestions} selected={selected} />
+      )}
     </div>
   );
 }

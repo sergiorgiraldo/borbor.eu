@@ -71,26 +71,40 @@ describe("parseSuggestions", () => {
     ]);
     const result = parseSuggestions(input);
     expect(result).toHaveLength(2);
-    expect(result[0]).toEqual({ city: "Paris", country: "France" });
+    expect(result[0]).toEqual({ city: "Paris", country: "France", lat: undefined, lng: undefined });
+  });
+
+  it("parses JSON with lat/lng coordinates", () => {
+    const input = JSON.stringify([
+      { city: "Paris", country: "France", lat: 48.8566, lng: 2.3522 },
+      { city: "Berlin", country: "Germany", lat: 52.52, lng: 13.405 },
+    ]);
+    const result = parseSuggestions(input);
+    expect(result).toHaveLength(2);
+    expect(result[0].lat).toBe(48.8566);
+    expect(result[0].lng).toBe(2.3522);
+    expect(result[1].lat).toBe(52.52);
   });
 
   it("parses JSON wrapped in object with suggestions key", () => {
     const input = JSON.stringify({
       suggestions: [
-        { city: "Rome", country: "Italy" },
-        { city: "Madrid", country: "Spain" },
+        { city: "Rome", country: "Italy", lat: 41.9028, lng: 12.4964 },
+        { city: "Madrid", country: "Spain", lat: 40.4168, lng: -3.7038 },
       ],
     });
     const result = parseSuggestions(input);
     expect(result).toHaveLength(2);
     expect(result[0].city).toBe("Rome");
+    expect(result[0].lat).toBe(41.9028);
   });
 
   it("extracts JSON array from mixed text", () => {
-    const input = `Here are suggestions: [{"city":"Lisbon","country":"Portugal"}]`;
+    const input = `Here are suggestions: [{"city":"Lisbon","country":"Portugal","lat":38.7169,"lng":-9.1395}]`;
     const result = parseSuggestions(input);
     expect(result).toHaveLength(1);
     expect(result[0].city).toBe("Lisbon");
+    expect(result[0].lat).toBe(38.7169);
   });
 
   it("returns empty array on invalid JSON", () => {
@@ -102,9 +116,21 @@ describe("parseSuggestions", () => {
     const many = Array.from({ length: 10 }, (_, i) => ({
       city: `City${i}`,
       country: "Country",
+      lat: i * 10,
+      lng: i * 5,
     }));
     const result = parseSuggestions(JSON.stringify(many));
     expect(result).toHaveLength(5);
+  });
+});
+
+// --- buildSuggestionsPrompt includes lat/lng ---
+
+describe("buildSuggestionsPrompt lat/lng", () => {
+  it("requests lat and lng in output format", () => {
+    const prompt = buildSuggestionsPrompt("Europe", "beach", []);
+    expect(prompt).toContain("lat");
+    expect(prompt).toContain("lng");
   });
 });
 

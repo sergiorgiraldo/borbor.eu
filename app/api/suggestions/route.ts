@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { callAnthropicLLM, callOpenAILLM } from "@/app/api/flow/route";
 
-export type Suggestion = { city: string; country: string };
+export type Suggestion = { city: string; country: string; lat?: number; lng?: number };
 
 export function buildSuggestionsPrompt(
   continent?: string,
@@ -26,23 +26,30 @@ export function buildSuggestionsPrompt(
   }
 
   parts.push(
-    'Return ONLY a JSON array (no markdown, no explanation) in this exact format: [{"city":"CityName","country":"CountryName"},...]'
+    'Return ONLY a JSON array (no markdown, no explanation) in this exact format: [{"city":"CityName","country":"CountryName","lat":0.0,"lng":0.0},...]'
   );
 
   return parts.join(" ");
 }
 
 export function parseSuggestions(text: string): Suggestion[] {
+  function mapItem(s: { city: unknown; country: unknown; lat?: unknown; lng?: unknown }): Suggestion {
+    return {
+      city: String(s.city),
+      country: String(s.country),
+      lat: typeof s.lat === "number" ? s.lat : undefined,
+      lng: typeof s.lng === "number" ? s.lng : undefined,
+    };
+  }
+
   try {
     // Try direct parse first
     const direct = JSON.parse(text);
     if (Array.isArray(direct)) {
-      return direct.slice(0, 5).map((s) => ({ city: String(s.city), country: String(s.country) }));
+      return direct.slice(0, 5).map(mapItem);
     }
     if (direct?.suggestions && Array.isArray(direct.suggestions)) {
-      return direct.suggestions
-        .slice(0, 5)
-        .map((s: { city: unknown; country: unknown }) => ({ city: String(s.city), country: String(s.country) }));
+      return direct.suggestions.slice(0, 5).map(mapItem);
     }
   } catch {
     // Fall through to regex extraction
@@ -54,7 +61,7 @@ export function parseSuggestions(text: string): Suggestion[] {
     try {
       const arr = JSON.parse(match[0]);
       if (Array.isArray(arr)) {
-        return arr.slice(0, 5).map((s) => ({ city: String(s.city), country: String(s.country) }));
+        return arr.slice(0, 5).map(mapItem);
       }
     } catch {
       // ignore
