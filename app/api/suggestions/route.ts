@@ -14,7 +14,8 @@ export function buildSuggestionsPrompt(
 
   if (destination) {
     parts.push(`The user wants to visit ${destination}.`);
-    parts.push(`Suggest 5 specific destinations (cities) in or near ${destination} for a great trip.`);
+    parts.push(`Suggest 5 specific cities located strictly within ${destination}.`);
+    parts.push(`ALL cities MUST be in ${destination} only. Do NOT suggest cities from other countries or regions.`);
   } else {
     if (continent) parts.push(`Continent: ${continent}.`);
     if (tripType) parts.push(`Trip type: ${tripType}.`);
@@ -41,7 +42,7 @@ export function parseSuggestions(text: string): Suggestion[] {
       lng: typeof s.lng === "number" ? s.lng : undefined,
     };
   }
-
+  console.log(text);
   try {
     // Try direct parse first
     const direct = JSON.parse(text);

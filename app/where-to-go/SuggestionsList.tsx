@@ -21,7 +21,7 @@ export default function SuggestionsList({ continent, tripType, destination }: Pr
   const [error, setError] = useState<string | null>(null);
 
   const fetchSuggestions = useCallback(
-    async (exclude: string[]) => {
+    async (exclude: string[], signal?: AbortSignal) => {
       setIsLoading(true);
       setError(null);
       try {
@@ -29,6 +29,7 @@ export default function SuggestionsList({ continent, tripType, destination }: Pr
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ continent, tripType, destination, exclude }),
+          signal,
         });
         const data = await res.json();
         if (data.error) {
@@ -38,7 +39,8 @@ export default function SuggestionsList({ continent, tripType, destination }: Pr
         const newSuggestions: Suggestion[] = data.suggestions ?? [];
         setSuggestions(newSuggestions);
         setSeen((prev) => [...prev, ...newSuggestions.map((s) => s.city)]);
-      } catch {
+      } catch (err) {
+        if (err instanceof Error && err.name === "AbortError") return;
         setError("Something went wrong. Please try again.");
       } finally {
         setIsLoading(false);
@@ -48,7 +50,9 @@ export default function SuggestionsList({ continent, tripType, destination }: Pr
   );
 
   useEffect(() => {
-    fetchSuggestions([]);
+    const controller = new AbortController();
+    fetchSuggestions([], controller.signal);
+    return () => controller.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

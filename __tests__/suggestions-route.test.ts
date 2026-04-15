@@ -59,6 +59,13 @@ describe("buildSuggestionsPrompt", () => {
     const prompt = buildSuggestionsPrompt(undefined, undefined, [], "France");
     expect(prompt).toContain("France");
   });
+
+  it("destination prompt restricts to country only (no 'near')", () => {
+    const prompt = buildSuggestionsPrompt(undefined, undefined, [], "East Timor");
+    expect(prompt).not.toContain("near");
+    expect(prompt).toContain("strictly within");
+    expect(prompt).toContain("East Timor");
+  });
 });
 
 // --- parseSuggestions ---
